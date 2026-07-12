@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { BookOpen, Star, GitFork, Code2, AlertCircle, GitPullRequest, Settings, Lock, Eye, GitCommit, Tag } from 'lucide-react';
 import { reposApi } from '@/lib/api';
@@ -124,7 +125,9 @@ export default function RepoLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <main className="max-w-screen-xl mx-auto px-4 py-8">
-        {children}
+        <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading page...</div>}>
+          {children}
+        </Suspense>
       </main>
     </div>
   );

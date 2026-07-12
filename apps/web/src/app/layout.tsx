@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from './providers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'PakHub — Where Pakistan Builds Software',
   description: 'PakHub is a GitHub-equivalent code collaboration platform with AI-powered features. Host code, manage projects, and collaborate with developers across Pakistan and beyond.',
