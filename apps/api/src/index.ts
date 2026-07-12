@@ -37,7 +37,9 @@ if (!fs.existsSync(reposDir)) fs.mkdirSync(reposDir, { recursive: true });
 // ─────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginEmbedderPolicy: false, contentSecurityPolicy: false }));
 app.use(cors({
-  origin: config.cors.origins,
+  origin: function (origin, callback) {
+    callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
