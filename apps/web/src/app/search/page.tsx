@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Search, BookOpen, User, AlertCircle, Star, GitFork, Loader2 } from 'lucide-react';
 import { searchApi } from '@/lib/api';
 import { Navbar } from '@/components/layout/Navbar';
@@ -15,6 +15,14 @@ const LANG_COLORS: Record<string, string> = {
 };
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400" /></div>}>
+      <SearchContent />
+    </Suspense>
+  );
+}
+
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const q = searchParams.get('q') || '';
