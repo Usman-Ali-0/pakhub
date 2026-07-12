@@ -1,0 +1,108 @@
+
+services:
+  # ─────────────────────────────────────────
+  # Express Backend API
+  # ─────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: pisahub-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      API_URL: http://localhost:4000
+      CLIENT_URL: http://localhost:3000
+      DATABASE_URL: postgresql://pisahub:pisahub123@postgres:5432/pisahub
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: super-secret-jwt-key-change-in-production-min-32-chars
+      JWT_REFRESH_SECRET: super-secret-refresh-key-change-in-production-min-32-chars
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: false
+      MINIO_ACCESS_KEY: pisahub_admin
+      MINIO_SECRET_KEY: pisahub_secret_123
+      MINIO_BUCKET: pisahub
+    volumes:
+      - repos_data:/app/repos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────
+  # PostgreSQL — Primary Database
+  # ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: pisahub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pisahub
+      POSTGRES_PASSWORD: pisahub123
+      POSTGRES_DB: pisahub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pisahub -d pisahub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # Redis — Cache, Sessions, Job Queue
+  # ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: pisahub-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # MinIO — Object Storage (S3-compatible)
+  # Stores: git LFS objects, release assets, avatars, packages
+  # ─────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: pisahub-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: pisahub_admin
+      MINIO_ROOT_PASSWORD: pisahub_secret_123
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console UI
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  repos_data:
+networks:
+  default:
+    name: pisahub-network

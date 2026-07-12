@@ -1,0 +1,30 @@
+{
+  "name": "pisa-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PISA-HUB — A GitHub-equivalent code collaboration platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:push": "pnpm --filter api db:push",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:studio": "pnpm --filter api db:studio",
+    "db:seed": "pnpm --filter api db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "setup": "pnpm install && pnpm docker:up && pnpm db:push && pnpm db:seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

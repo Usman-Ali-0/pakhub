@@ -1,0 +1,585 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────
+// USER & AUTH
+// ─────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  email         String   @unique
+  name          String?
+  bio           String?
+  avatarUrl     String?
+  website       String?
+  location      String?
+  twitterHandle String?
+  passwordHash  String
+  totpSecret    String?
+  totpEnabled   Boolean  @default(false)
+  isAdmin       Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  sshKeys          SshKey[]
+  repositories     Repository[]    @relation("OwnerRepos")
+  stars            Star[]
+  watches          Watch[]
+  followers        Follow[]        @relation("FollowingUser")
+  following        Follow[]        @relation("FollowerUser")
+  notifications    Notification[]
+  issues           Issue[]         @relation("IssueAuthor")
+  issueAssignees   IssueAssignee[]
+  comments         Comment[]
+  pullRequests     PullRequest[]   @relation("PRAuthor")
+  reviews          Review[]
+  reviewComments   ReviewComment[]
+  accessTokens     AccessToken[]
+  orgMemberships   OrgMember[]
+  aiProviders      UserAiProvider[]
+  releases         Release[]
+
+  @@map("users")
+}
+
+model SshKey {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  publicKey   String   @unique
+  fingerprint String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ssh_keys")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowingUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model AccessToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  token      String    @unique
+  scopes     String[]  @default(["repo", "user", "gist"])
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("access_tokens")
+}
+
+// ─────────────────────────────────────────────────────────
+// ORGANIZATION
+// ─────────────────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String?
+  description String?
+  avatarUrl   String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members      OrgMember[]
+  teams        Team[]
+  repositories Repository[] @relation("OrgRepos")
+
+  @@map("organizations")
+}
+
+model OrgMember {
+  id        String  @id @default(cuid())
+  orgId     String
+  userId    String
+  role      OrgRole @default(MEMBER)
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@map("org_members")
+}
+
+model Team {
+  id          String @id @default(cuid())
+  orgId       String
+  name        String
+  description String?
+  permission  TeamPermission @default(READ)
+
+  org     Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members TeamMember[]
+
+  @@unique([orgId, name])
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String @id @default(cuid())
+  teamId String
+  userId String
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// ─────────────────────────────────────────────────────────
+// REPOSITORY
+// ─────────────────────────────────────────────────────────
+
+model Repository {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  isPrivate     Boolean  @default(false)
+  defaultBranch String   @default("main")
+  ownerId       String
+  orgId         String?
+  forkedFromId  String?
+  isArchived    Boolean  @default(false)
+  isMirror      Boolean  @default(false)
+  website       String?
+  topics        String[] @default([])
+  size          Int      @default(0)
+  starsCount    Int      @default(0)
+  forksCount    Int      @default(0)
+  watchersCount Int      @default(0)
+  openIssuesCount Int    @default(0)
+  language      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  owner      User          @relation("OwnerRepos", fields: [ownerId], references: [id], onDelete: Cascade)
+  org        Organization? @relation("OrgRepos", fields: [orgId], references: [id], onDelete: SetNull)
+  forkedFrom Repository?   @relation("RepoForks", fields: [forkedFromId], references: [id], onDelete: SetNull)
+  forks      Repository[]  @relation("RepoForks")
+  stars      Star[]
+  watches    Watch[]
+  branches   Branch[]
+  issues     Issue[]
+  pullRequests PullRequest[]
+  labels     Label[]
+  milestones Milestone[]
+  webhooks   Webhook[]
+  releases   Release[]
+
+  @@unique([ownerId, name])
+  @@map("repositories")
+}
+
+model Star {
+  id        String   @id @default(cuid())
+  userId    String
+  repoId    String
+  createdAt DateTime @default(now())
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repo Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repoId])
+  @@map("stars")
+}
+
+model Watch {
+  id        String       @id @default(cuid())
+  userId    String
+  repoId    String
+  level     WatchLevel   @default(WATCHING)
+  createdAt DateTime     @default(now())
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repo Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repoId])
+  @@map("watches")
+}
+
+model Branch {
+  id          String   @id @default(cuid())
+  repoId      String
+  name        String
+  sha         String
+  isProtected Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  repo Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([repoId, name])
+  @@map("branches")
+}
+
+// ─────────────────────────────────────────────────────────
+// ISSUES
+// ─────────────────────────────────────────────────────────
+
+model Issue {
+  id          String     @id @default(cuid())
+  repoId      String
+  number      Int
+  title       String
+  body        String?
+  state       IssueState @default(OPEN)
+  authorId    String
+  milestoneId String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  closedAt    DateTime?
+
+  repo      Repository      @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  author    User            @relation("IssueAuthor", fields: [authorId], references: [id])
+  milestone Milestone?      @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignees IssueAssignee[]
+  labels    IssueLabel[]
+  comments  Comment[]
+
+  @@unique([repoId, number])
+  @@map("issues")
+}
+
+model IssueAssignee {
+  id      String @id @default(cuid())
+  issueId String
+  userId  String
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, userId])
+  @@map("issue_assignees")
+}
+
+model IssueLabel {
+  id      String @id @default(cuid())
+  issueId String
+  labelId String
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId])
+  @@map("issue_labels")
+}
+
+model Label {
+  id          String  @id @default(cuid())
+  repoId      String
+  name        String
+  color       String  @default("#0075ca")
+  description String?
+
+  repo        Repository   @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  issueLabels IssueLabel[]
+  prLabels    PRLabel[]
+
+  @@unique([repoId, name])
+  @@map("labels")
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  repoId      String
+  title       String
+  description String?
+  state       MilestoneState  @default(OPEN)
+  dueDate     DateTime?
+  createdAt   DateTime        @default(now())
+
+  repo   Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  issues Issue[]
+  prs    PullRequest[]
+
+  @@map("milestones")
+}
+
+model Comment {
+  id            String   @id @default(cuid())
+  issueId       String?
+  pullRequestId String?
+  authorId      String
+  body          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  issue       Issue?       @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  pullRequest PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+// ─────────────────────────────────────────────────────────
+// PULL REQUESTS
+// ─────────────────────────────────────────────────────────
+
+model PullRequest {
+  id            String          @id @default(cuid())
+  repoId        String
+  number        Int
+  title         String
+  body          String?
+  state         PullRequestState @default(OPEN)
+  authorId      String
+  headBranch    String
+  baseBranch    String
+  headSha       String
+  baseSha       String
+  milestoneId   String?
+  isDraft       Boolean         @default(false)
+  mergedAt      DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  repo      Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  author    User       @relation("PRAuthor", fields: [authorId], references: [id])
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  reviews   Review[]
+  labels    PRLabel[]
+  reviewComments ReviewComment[]
+
+  @@unique([repoId, number])
+  @@map("pull_requests")
+}
+
+model PRLabel {
+  id            String @id @default(cuid())
+  pullRequestId String
+  labelId       String
+
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  label       Label       @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([pullRequestId, labelId])
+  @@map("pr_labels")
+}
+
+model Review {
+  id            String      @id @default(cuid())
+  pullRequestId String
+  authorId      String
+  state         ReviewState @default(PENDING)
+  body          String?
+  submittedAt   DateTime    @default(now())
+
+  pullRequest PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  author      User          @relation(fields: [authorId], references: [id])
+  comments    ReviewComment[]
+
+  @@map("reviews")
+}
+
+model ReviewComment {
+  id            String   @id @default(cuid())
+  reviewId      String?
+  pullRequestId String
+  authorId      String
+  path          String
+  line          Int
+  body          String
+  createdAt     DateTime @default(now())
+
+  review      Review?     @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id])
+
+  @@map("review_comments")
+}
+
+// ─────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────
+// WEBHOOKS & RELEASES
+// ─────────────────────────────────────────────────────────
+
+model Webhook {
+  id        String   @id @default(cuid())
+  repoId    String?
+  orgId     String?
+  url       String
+  secret    String?
+  events    String[] @default(["push"])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  repo Repository? @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@map("webhooks")
+}
+
+model Release {
+  id           String   @id @default(cuid())
+  repoId       String
+  tagName      String
+  name         String?
+  body         String?
+  isDraft      Boolean  @default(false)
+  isPrerelease Boolean  @default(false)
+  authorId     String
+  createdAt    DateTime @default(now())
+
+  repo   Repository     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  author User           @relation(fields: [authorId], references: [id])
+  assets ReleaseAsset[]
+
+  @@unique([repoId, tagName])
+  @@map("releases")
+}
+
+model ReleaseAsset {
+  id          String   @id @default(cuid())
+  releaseId   String
+  name        String
+  contentType String
+  size        Int
+  downloadUrl String
+  createdAt   DateTime @default(now())
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@map("release_assets")
+}
+
+// ─────────────────────────────────────────────────────────
+// AI PROVIDERS (BYOAI)
+// ─────────────────────────────────────────────────────────
+
+model UserAiProvider {
+  id              String      @id @default(cuid())
+  userId          String
+  provider        AIProvider
+  encryptedApiKey String
+  endpoint        String?     // For custom/Ollama endpoints
+  selectedModel   String
+  isDefault       Boolean     @default(false)
+  useFor          String[]    @default(["copilot", "review", "chat"])
+  createdAt       DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("user_ai_providers")
+}
+
+// ─────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum TeamPermission {
+  READ
+  WRITE
+  ADMIN
+}
+
+enum WatchLevel {
+  IGNORING
+  DEFAULT
+  WATCHING
+  ALL
+}
+
+enum IssueState {
+  OPEN
+  CLOSED
+}
+
+enum MilestoneState {
+  OPEN
+  CLOSED
+}
+
+enum PullRequestState {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+enum ReviewState {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+  COMMENTED
+  DISMISSED
+}
+
+enum NotificationType {
+  ISSUE_OPENED
+  ISSUE_CLOSED
+  ISSUE_COMMENTED
+  PR_OPENED
+  PR_CLOSED
+  PR_MERGED
+  PR_REVIEWED
+  PR_COMMENTED
+  STAR
+  FORK
+  FOLLOW
+  MENTION
+  RELEASE
+  SECURITY_ALERT
+}
+
+enum AIProvider {
+  GEMINI
+  GROQ
+  OPENAI
+  ANTHROPIC
+  MISTRAL
+  COHERE
+  OLLAMA
+  CUSTOM
+}
