@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Install system dependencies required for our Git server
-RUN apt-get update && apt-get install -y openssl git tar && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl git tar unzip && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -30,7 +30,7 @@ RUN pnpm run build
 FROM node:20-slim
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN apt-get update && apt-get install -y openssl git tar && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl git tar unzip && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
