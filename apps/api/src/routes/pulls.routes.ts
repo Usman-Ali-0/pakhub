@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
+import { PullRequestState } from '@prisma/client';
 import { authenticate, optionalAuth, AuthRequest } from '../middleware/auth.middleware';
 import { createError } from '../middleware/error.middleware';
 import * as gitService from '../services/git.service';
@@ -33,7 +34,7 @@ async function getRepo(owner: string, repo: string, userId?: string) {
 router.get('/:owner/:repo', optionalAuth, async (req: AuthRequest, res, next) => {
   try {
     const repo = await getRepo(req.params.owner, req.params.repo, req.user?.id);
-    const state = (req.query.state as string) || 'OPEN';
+    const state = ((req.query.state as string) || 'OPEN') as PullRequestState;
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 25, 100);
 
