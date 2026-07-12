@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Install system dependencies required for our Git server
-RUN apk add --no-cache git tar
+RUN apt-get update && apt-get install -y openssl git tar && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -27,10 +27,10 @@ RUN pnpm run db:generate
 RUN pnpm run build
 
 # Start production image
-FROM node:20-alpine
+FROM node:20-slim
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN apk add --no-cache git tar
+RUN apt-get update && apt-get install -y openssl git tar && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
