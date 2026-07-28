@@ -20,8 +20,8 @@ export const config = {
   isProd: process.env.NODE_ENV === 'production',
 
   app: {
-    name: optional('APP_NAME', 'PISA-HUB'),
-    url: optional('APP_URL', 'http://localhost:3000'),
+    name: optional('APP_NAME', 'PakHub'),
+    url: optional('CLIENT_URL', 'http://localhost:3000'),
     apiUrl: optional('API_URL', 'http://localhost:4000'),
     port: parseInt(optional('PORT', '4000')),
   },
@@ -29,11 +29,11 @@ export const config = {
   jwt: {
     secret: optional('JWT_SECRET', 'dev-secret-change-in-production-min-32-chars!!'),
     expiresIn: optional('JWT_EXPIRES_IN', '7d'),
-    refreshSecret: optional('REFRESH_TOKEN_SECRET', 'dev-refresh-secret-change-in-production!!'),
+    refreshSecret: optional('JWT_REFRESH_SECRET', optional('REFRESH_TOKEN_SECRET', 'dev-refresh-secret-change-in-production!!')),
   },
 
   database: {
-    url: optional('DATABASE_URL', 'postgresql://pisahub:pisahub123@localhost:5432/pisahub'),
+    url: optional('DATABASE_URL', 'postgresql://pakhub:pakhub123@localhost:5432/pakhub'),
   },
 
   redis: {
@@ -43,8 +43,8 @@ export const config = {
   minio: {
     endpoint: optional('MINIO_ENDPOINT', 'localhost'),
     port: parseInt(optional('MINIO_PORT', '9000')),
-    accessKey: optional('MINIO_ACCESS_KEY', 'pisahub_admin'),
-    secretKey: optional('MINIO_SECRET_KEY', 'pisahub_secret_123'),
+    accessKey: optional('MINIO_ACCESS_KEY', 'pakhub_admin'),
+    secretKey: optional('MINIO_SECRET_KEY', 'pakhub_secret_123'),
     useSSL: optional('MINIO_USE_SSL', 'false') === 'true',
     buckets: {
       repos: optional('MINIO_BUCKET_REPOS', 'repos'),
@@ -62,7 +62,7 @@ export const config = {
     port: parseInt(optional('SMTP_PORT', '1025')),
     user: optional('SMTP_USER', ''),
     pass: optional('SMTP_PASS', ''),
-    from: optional('EMAIL_FROM', 'noreply@pisahub.com'),
+    from: optional('EMAIL_FROM', 'noreply@pakhub.com'),
   },
 
   ai: {
