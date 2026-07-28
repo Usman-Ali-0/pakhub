@@ -9,6 +9,7 @@ import notificationsRoutes from './notifications.routes';
 import searchRoutes from './search.routes';
 import aiRoutes from './ai.routes';
 import uploadRoutes from './upload.routes';
+import workflowsRoutes from './workflows.routes';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/notifications', notificationsRoutes);
 router.use('/search', searchRoutes);
 router.use('/ai', aiRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/workflows', workflowsRoutes);
 
 // Health check
 router.get('/health', (_, res) => {

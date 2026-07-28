@@ -7,6 +7,7 @@ import { authenticate, AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import { createError } from '../middleware/error.middleware';
 import * as gitService from '../services/git.service';
+import { triggerWorkflowsOnPush } from '../services/workflow.service';
 import { exec } from 'child_process';
 import util from 'util';
 
@@ -115,9 +116,11 @@ router.post('/file/:owner/:repo', authenticate, upload.single('file'), async (re
       // nothing to commit
     });
     await execPromise(`git push origin HEAD:"${branch}" --force-with-lease`, cwdOpt).catch(async () => {
-      // If force-with-lease fails (e.g. no upstream), try regular push
       await execPromise(`git push origin HEAD:"${branch}"`, cwdOpt);
     });
+
+    const headSha = await execPromise(`git -C "${repoPath}" rev-parse refs/heads/${branch}`).then(r => r.stdout.trim()).catch(() => undefined);
+    triggerWorkflowsOnPush(repository.id, owner as string, repo as string, branch, headSha, message).catch(console.error);
 
     res.json({ success: true, message: 'File uploaded successfully' });
   } catch (err) { next(err); }
@@ -234,6 +237,10 @@ router.post('/repo/:owner/:repo', authenticate, upload.single('file'), async (re
     if (branch === repository.defaultBranch) {
       await execPromise(`git -C "${repoPath}" symbolic-ref HEAD refs/heads/${branch}`).catch(() => {});
     }
+
+    // Trigger CI/CD workflows on push
+    const headSha = await execPromise(`git -C "${repoPath}" rev-parse refs/heads/${branch}`).then(r => r.stdout.trim()).catch(() => undefined);
+    triggerWorkflowsOnPush(repository.id, owner as string, repo as string, branch, headSha, commitMessage).catch(console.error);
 
     res.json({ success: true, message: 'Files uploaded successfully' });
   } catch (err) { next(err); }

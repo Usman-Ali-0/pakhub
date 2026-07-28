@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { 
   User, Shield, Key, Bell, Bot, CreditCard, 
-  Settings as SettingsIcon, LayoutTemplate
+  Settings as SettingsIcon, LayoutTemplate, Globe
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ const sidebarLinks = [
   { name: 'Security', href: '/settings/security', icon: Shield },
   { name: 'SSH Keys', href: '/settings/keys', icon: Key },
   { name: 'AI Models (BYOAI)', href: '/settings/ai', icon: Bot, highlight: true },
+  { name: 'Language', href: '/settings/language', icon: Globe },
   { name: 'Notifications', href: '/settings/notifications', icon: Bell },
   { name: 'Appearance', href: '/settings/appearance', icon: LayoutTemplate },
   { name: 'Billing', href: '/settings/billing', icon: CreditCard },

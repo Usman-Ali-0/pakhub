@@ -189,4 +189,22 @@ export const aiApi = {
   deleteProvider: (id: string) => api.delete(`/ai/providers/${id}`).then(r => r.data),
 };
 
+// ─── Workflows (CI/CD) ───────────────────────────────────
+export const workflowsApi = {
+  list: (owner: string, repo: string) =>
+    api.get(`/workflows/${owner}/${repo}`).then(r => r.data.data),
+  listRuns: (owner: string, repo: string, page = 1) =>
+    api.get(`/workflows/${owner}/${repo}/runs`, { params: { page } }).then(r => r.data),
+  getRun: (owner: string, repo: string, runId: string) =>
+    api.get(`/workflows/${owner}/${repo}/runs/${runId}`).then(r => r.data.data),
+  create: (owner: string, repo: string, data: { name: string; filename: string; content: string }) =>
+    api.post(`/workflows/${owner}/${repo}`, data).then(r => r.data.data),
+  sync: (owner: string, repo: string) =>
+    api.post(`/workflows/${owner}/${repo}/sync`).then(r => r.data.data),
+  run: (owner: string, repo: string, workflowId: string, branch = 'main') =>
+    api.post(`/workflows/${owner}/${repo}/${workflowId}/run`, { branch }).then(r => r.data.data),
+  delete: (owner: string, repo: string, workflowId: string) =>
+    api.delete(`/workflows/${owner}/${repo}/${workflowId}`).then(r => r.data),
+};
+
 export default api;

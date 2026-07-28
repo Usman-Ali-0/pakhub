@@ -50,6 +50,7 @@ model User {
   orgMemberships   OrgMember[]
   aiProviders      UserAiProvider[]
   releases         Release[]
+  preferredLanguage String @default("en")
 
   @@map("users")
 }
@@ -193,6 +194,8 @@ model Repository {
   milestones Milestone[]
   webhooks   Webhook[]
   releases   Release[]
+  workflows  Workflow[]
+  workflowRuns WorkflowRun[]
 
   @@unique([ownerId, name])
   @@map("repositories")
@@ -582,4 +585,74 @@ enum AIProvider {
   COHERE
   OLLAMA
   CUSTOM
+}
+
+// ─────────────────────────────────────────────────────────
+// CI/CD WORKFLOWS
+// ─────────────────────────────────────────────────────────
+
+model Workflow {
+  id        String   @id @default(cuid())
+  repoId    String
+  name      String
+  filename  String
+  content   String   @db.Text
+  triggers  String[] @default(["push"])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repo Repository    @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  runs WorkflowRun[]
+
+  @@unique([repoId, filename])
+  @@map("workflows")
+}
+
+model WorkflowRun {
+  id          String            @id @default(cuid())
+  workflowId  String
+  repoId      String
+  runNumber   Int
+  status      WorkflowRunStatus @default(PENDING)
+  trigger     String            @default("push")
+  branch      String?
+  commitSha   String?
+  commitMsg   String?
+  logs        String?           @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+
+  workflow Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  repo     Repository    @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  jobs     WorkflowJob[]
+
+  @@unique([repoId, runNumber])
+  @@map("workflow_runs")
+}
+
+model WorkflowJob {
+  id          String            @id @default(cuid())
+  runId       String
+  name        String
+  status      WorkflowRunStatus @default(PENDING)
+  logs        String?           @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+
+  run WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_jobs")
+}
+
+enum WorkflowRunStatus {
+  PENDING
+  QUEUED
+  IN_PROGRESS
+  SUCCESS
+  FAILURE
+  CANCELLED
+  SKIPPED
 }

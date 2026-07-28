@@ -69,6 +69,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res, next) => {
         id: true, username: true, email: true, name: true, bio: true,
         avatarUrl: true, website: true, location: true, twitterHandle: true,
         totpEnabled: true, isAdmin: true, emailVerified: true,
+        preferredLanguage: true,
         createdAt: true, updatedAt: true,
         _count: {
           select: {
@@ -92,6 +93,7 @@ router.put('/me', authenticate, async (req: AuthRequest, res, next) => {
       website: z.string().url().optional().or(z.literal('')),
       location: z.string().max(100).optional(),
       twitterHandle: z.string().max(50).optional(),
+      preferredLanguage: z.string().max(10).optional(),
     });
     const data = schema.parse(req.body);
     const user = await prisma.user.update({
@@ -100,7 +102,7 @@ router.put('/me', authenticate, async (req: AuthRequest, res, next) => {
       select: {
         id: true, username: true, email: true, name: true,
         bio: true, avatarUrl: true, website: true, location: true,
-        twitterHandle: true, updatedAt: true,
+        twitterHandle: true, preferredLanguage: true, updatedAt: true,
       },
     });
     res.json({ success: true, data: user });

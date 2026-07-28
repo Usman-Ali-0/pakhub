@@ -12,10 +12,13 @@ import {
 import { useAuthStore } from '@/store/auth.store';
 import { notificationsApi, searchApi } from '@/lib/api';
 import { useNotificationStore } from '@/store/notification.store';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { useTranslation } from '@/i18n/I18nProvider';
 
 export function Navbar() {
   const { user, clearAuth } = useAuthStore();
   const { unreadCount, setUnreadCount } = useNotificationStore();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [searchResults, setSearchResults] = useState<any>(null);
@@ -145,15 +148,15 @@ export function Navbar() {
           {user && (
             <>
               <Link href="/search?type=pulls" className="px-3 py-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors" id="nav-pulls">
-                Pull requests
+                {t.nav.pullRequests}
               </Link>
               <Link href="/search?type=issues" className="px-3 py-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors" id="nav-issues">
-                Issues
+                {t.nav.issues}
               </Link>
             </>
           )}
           <Link href="/explore" className="px-3 py-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors" id="nav-explore">
-            Explore
+            {t.nav.explore}
           </Link>
         </nav>
 
@@ -220,6 +223,9 @@ export function Navbar() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-1.5">
+          {/* Language switcher */}
+          <LanguageSwitcher />
+
           {/* Theme toggle */}
           <button
             id="nav-theme-toggle"
@@ -300,11 +306,14 @@ export function Navbar() {
                 {showCreateMenu && (
                   <div className="dropdown-menu right-0 top-full mt-1 w-56 animate-slide-down">
                     <Link href="/new" onClick={() => setShowCreateMenu(false)} className="dropdown-item">
-                      <BookOpen className="w-4 h-4 text-slate-400" /> New repository
+                      <BookOpen className="w-4 h-4 text-slate-400" /> {t.nav.newRepo}
                     </Link>
                     <div className="dropdown-divider" />
                     <Link href="/import" onClick={() => setShowCreateMenu(false)} className="dropdown-item">
-                      <GitBranch className="w-4 h-4 text-slate-400" /> Import repository
+                      <GitBranch className="w-4 h-4 text-slate-400" /> {t.nav.importRepo}
+                    </Link>
+                    <Link href="/ai/chat" onClick={() => setShowCreateMenu(false)} className="dropdown-item">
+                      <MessageSquare className="w-4 h-4 text-slate-400" /> {t.ai.chat}
                     </Link>
                   </div>
                 )}
@@ -329,24 +338,24 @@ export function Navbar() {
                       <p className="text-xs text-slate-500 dark:text-slate-400">@{user.username}</p>
                     </div>
                     <Link href={`/${user.username}`} onClick={() => setShowUserMenu(false)} className="dropdown-item mt-1">
-                      <User className="w-4 h-4 text-slate-400" /> Your profile
+                      <User className="w-4 h-4 text-slate-400" /> {t.nav.yourProfile}
                     </Link>
                     <Link href={`/${user.username}?tab=repositories`} onClick={() => setShowUserMenu(false)} className="dropdown-item">
-                      <BookOpen className="w-4 h-4 text-slate-400" /> Your repositories
+                      <BookOpen className="w-4 h-4 text-slate-400" /> {t.nav.yourRepos}
                     </Link>
                     <Link href={`/${user.username}?tab=stars`} onClick={() => setShowUserMenu(false)} className="dropdown-item">
-                      <Star className="w-4 h-4 text-slate-400" /> Your stars
+                      <Star className="w-4 h-4 text-slate-400" /> {t.nav.yourStars}
                     </Link>
                     <div className="dropdown-divider" />
                     <Link href="/settings/profile" onClick={() => setShowUserMenu(false)} className="dropdown-item">
-                      <Settings className="w-4 h-4 text-slate-400" /> Settings
+                      <Settings className="w-4 h-4 text-slate-400" /> {t.nav.settings}
                     </Link>
                     <Link href="/settings/ai" onClick={() => setShowUserMenu(false)} className="dropdown-item">
-                      <MessageSquare className="w-4 h-4 text-slate-400" /> AI providers
+                      <MessageSquare className="w-4 h-4 text-slate-400" /> {t.nav.aiProviders}
                     </Link>
                     <div className="dropdown-divider" />
                     <button onClick={handleLogout} className="dropdown-item text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full">
-                      <LogOut className="w-4 h-4" /> Sign out
+                      <LogOut className="w-4 h-4" /> {t.nav.signOut}
                     </button>
                   </div>
                 )}
@@ -355,10 +364,10 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-2 ml-2">
               <Link href="/login" id="nav-signin" className="px-3 py-1.5 text-sm font-medium text-white/80 hover:text-white transition-colors">
-                Sign in
+                {t.nav.signIn}
               </Link>
               <Link href="/register" id="nav-signup" className="px-4 py-1.5 text-sm font-medium bg-white/10 text-white border border-white/20 rounded-md hover:bg-white/20 transition-colors">
-                Sign up
+                {t.nav.signUp}
               </Link>
             </div>
           )}

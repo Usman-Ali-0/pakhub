@@ -8,9 +8,9 @@ import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 
 const AI_PROVIDERS = [
-  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'], color: '#10a37f', desc: 'GPT-4o, GPT-4 Turbo, and more' },
-  { id: 'anthropic', name: 'Anthropic', models: ['claude-sonnet-4-20250514', 'claude-3-haiku-20240307'], color: '#d97706', desc: 'Claude Sonnet, Haiku' },
-  { id: 'google', name: 'Google AI', models: ['gemini-2.5-pro', 'gemini-2.5-flash'], color: '#4285f4', desc: 'Gemini Pro, Gemini Flash' },
+  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini'], color: '#10a37f', desc: 'GPT-4o, GPT-4 Turbo, O1' },
+  { id: 'anthropic', name: 'Anthropic', models: ['claude-opus-4-20250514', 'claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'], color: '#d97706', desc: 'Claude Opus, Sonnet, Haiku' },
+  { id: 'google', name: 'Google AI', models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'], color: '#4285f4', desc: 'Gemini Pro, Gemini Flash' },
   { id: 'groq', name: 'Groq', models: ['llama-3.1-70b-versatile', 'mixtral-8x7b-32768'], color: '#f97316', desc: 'Llama 3.1, Mixtral — blazing fast' },
   { id: 'mistral', name: 'Mistral AI', models: ['mistral-large-latest', 'mistral-medium-latest'], color: '#ff7000', desc: 'Mistral Large, Medium' },
   { id: 'cohere', name: 'Cohere', models: ['command-r-plus', 'command-r'], color: '#39594d', desc: 'Command R+, Command R' },

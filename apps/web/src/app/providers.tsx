@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { I18nProvider } from '@/i18n/I18nProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -20,8 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster
+      <I18nProvider>
+        {children}
+        <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
@@ -37,7 +39,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             iconTheme: { primary: '#dc2626', secondary: '#ffffff' },
           },
         }}
-      />
+        />
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

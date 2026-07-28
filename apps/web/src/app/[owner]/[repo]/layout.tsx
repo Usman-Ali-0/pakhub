@@ -5,15 +5,17 @@ import { useParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { BookOpen, Star, GitFork, Code2, AlertCircle, GitPullRequest, Settings, Lock, Eye, GitCommit, Tag } from 'lucide-react';
+import { BookOpen, Star, GitFork, Code2, AlertCircle, GitPullRequest, Settings, Lock, Eye, GitCommit, Tag, Zap } from 'lucide-react';
 import { reposApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { useTranslation } from '@/i18n/I18nProvider';
 import toast from 'react-hot-toast';
 
 export default function RepoLayout({ children }: { children: React.ReactNode }) {
   const { owner, repo } = useParams();
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
 
   const { data: repository, isLoading, error } = useQuery({
     queryKey: ['repo', owner, repo],
@@ -38,12 +40,13 @@ export default function RepoLayout({ children }: { children: React.ReactNode }) 
 
   const basePath = `/${owner}/${repo}`;
   const tabs = [
-    { name: 'Code', href: basePath, icon: Code2, match: (p: string) => p === basePath || p.startsWith(`${basePath}/blob`) },
-    { name: 'Issues', href: `${basePath}/issues`, icon: AlertCircle, count: repository?.openIssuesCount },
-    { name: 'Pull requests', href: `${basePath}/pulls`, icon: GitPullRequest },
-    { name: 'Commits', href: `${basePath}/commits`, icon: GitCommit },
-    { name: 'Releases', href: `${basePath}/releases`, icon: Tag },
-    ...(user?.username === owner ? [{ name: 'Settings', href: `${basePath}/settings`, icon: Settings }] : []),
+    { name: t.repo.code, href: basePath, icon: Code2, match: (p: string) => p === basePath || p.startsWith(`${basePath}/blob`) },
+    { name: t.repo.issues, href: `${basePath}/issues`, icon: AlertCircle, count: repository?.openIssuesCount },
+    { name: t.repo.pullRequests, href: `${basePath}/pulls`, icon: GitPullRequest },
+    { name: t.repo.workflows, href: `${basePath}/workflows`, icon: Zap, match: (p: string) => p.startsWith(`${basePath}/workflows`) },
+    { name: t.repo.commits, href: `${basePath}/commits`, icon: GitCommit },
+    { name: t.repo.releases, href: `${basePath}/releases`, icon: Tag },
+    ...(user?.username === owner ? [{ name: t.repo.settings, href: `${basePath}/settings`, icon: Settings }] : []),
   ];
 
   if (isLoading) return (
@@ -108,7 +111,7 @@ export default function RepoLayout({ children }: { children: React.ReactNode }) 
 
           <nav className="flex gap-1 overflow-x-auto no-scrollbar">
             {tabs.map(tab => {
-              const isActive = 'match' in tab ? (tab as any).match(pathname) : pathname.startsWith(tab.href);
+              const isActive = 'match' in tab ? (tab as { match: (p: string) => boolean }).match(pathname) : pathname.startsWith(tab.href);
               return (
                 <Link key={tab.name} href={tab.href}
                   className={isActive ? 'tab-active' : 'tab-inactive'}>

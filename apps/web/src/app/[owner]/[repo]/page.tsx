@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Folder, FileText, GitBranch, ChevronRight, Loader2, Star, Eye, GitFork, Scale, Download, Users, Copy, CheckCircle } from 'lucide-react';
+import { Folder, FileText, GitBranch, ChevronRight, Loader2, Star, Eye, GitFork, Scale, Download, Users, Copy, CheckCircle, Link2 } from 'lucide-react';
 import { reposApi, gitApi } from '@/lib/api';
 import { BranchSelector } from '@/components/ui/BranchSelector';
 import ReactMarkdown from 'react-markdown';
@@ -300,7 +300,7 @@ git push -u origin main
             </p>
             {repository?.website && (
               <a href={repository.website} className="text-sm text-link flex items-center gap-1 mt-2" target="_blank">
-                <LinkIcon className="w-3.5 h-3.5" /> {repository.website}
+                <Link2 className="w-3.5 h-3.5" /> {repository.website}
               </a>
             )}
             {repository?.topics?.length > 0 && (
