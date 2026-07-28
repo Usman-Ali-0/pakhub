@@ -51,6 +51,9 @@ model User {
   aiProviders      UserAiProvider[]
   releases         Release[]
   preferredLanguage String @default("en")
+  gists            Gist[]
+  discussions      Discussion[]        @relation("DiscussionAuthor")
+  discussionComments DiscussionComment[] @relation("DiscussionCommentAuthor")
 
   @@map("users")
 }
@@ -196,6 +199,9 @@ model Repository {
   releases   Release[]
   workflows  Workflow[]
   workflowRuns WorkflowRun[]
+  wikiPages    WikiPage[]
+  discussionCategories DiscussionCategory[]
+  discussions  Discussion[]
 
   @@unique([ownerId, name])
   @@map("repositories")
@@ -656,3 +662,157 @@ enum WorkflowRunStatus {
   CANCELLED
   SKIPPED
 }
+
+// ─────────────────────────────────────────────────────────
+// GISTS
+// ─────────────────────────────────────────────────────────
+
+model Gist {
+  id          String   @id @default(cuid())
+  authorId    String
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  files  GistFile[]
+  stars  GistStar[]
+  forks  GistFork[]
+
+  @@map("gists")
+}
+
+model GistFile {
+  id       String @id @default(cuid())
+  gistId   String
+  filename String
+  content  String @db.Text
+  language String?
+  size     Int    @default(0)
+
+  gist Gist @relation(fields: [gistId], references: [id], onDelete: Cascade)
+
+  @@unique([gistId, filename])
+  @@map("gist_files")
+}
+
+model GistStar {
+  id        String   @id @default(cuid())
+  gistId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  gist Gist @relation(fields: [gistId], references: [id], onDelete: Cascade)
+
+  @@unique([gistId, userId])
+  @@map("gist_stars")
+}
+
+model GistFork {
+  id           String   @id @default(cuid())
+  gistId       String
+  userId       String
+  forkedGistId String
+  createdAt    DateTime @default(now())
+
+  gist Gist @relation(fields: [gistId], references: [id], onDelete: Cascade)
+
+  @@unique([gistId, userId])
+  @@map("gist_forks")
+}
+
+// ─────────────────────────────────────────────────────────
+// WIKI
+// ─────────────────────────────────────────────────────────
+
+model WikiPage {
+  id        String   @id @default(cuid())
+  repoId    String
+  title     String
+  slug      String
+  content   String   @db.Text
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repo     Repository     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  revisions WikiRevision[]
+
+  @@unique([repoId, slug])
+  @@map("wiki_pages")
+}
+
+model WikiRevision {
+  id         String   @id @default(cuid())
+  pageId     String
+  content    String   @db.Text
+  message    String?
+  authorId   String
+  createdAt  DateTime @default(now())
+
+  page WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("wiki_revisions")
+}
+
+// ─────────────────────────────────────────────────────────
+// DISCUSSIONS
+// ─────────────────────────────────────────────────────────
+
+model DiscussionCategory {
+  id          String @id @default(cuid())
+  repoId      String
+  name        String
+  description String?
+  emoji       String  @default("💬")
+  isAnswerable Boolean @default(false)
+
+  repo        Repository   @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  discussions Discussion[]
+
+  @@unique([repoId, name])
+  @@map("discussion_categories")
+}
+
+model Discussion {
+  id         String   @id @default(cuid())
+  repoId     String
+  categoryId String
+  authorId   String
+  number     Int
+  title      String
+  body       String   @db.Text
+  isPinned   Boolean  @default(false)
+  isLocked   Boolean  @default(false)
+  answerId   String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  repo     Repository         @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  category DiscussionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  author   User               @relation("DiscussionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  comments DiscussionComment[]
+
+  @@unique([repoId, number])
+  @@map("discussions")
+}
+
+model DiscussionComment {
+  id           String   @id @default(cuid())
+  discussionId String
+  authorId     String
+  body         String   @db.Text
+  isAnswer     Boolean  @default(false)
+  parentId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  discussion Discussion         @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  author     User               @relation("DiscussionCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parent     DiscussionComment?  @relation("DiscussionCommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    DiscussionComment[] @relation("DiscussionCommentReplies")
+
+  @@map("discussion_comments")
+}
+

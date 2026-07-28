@@ -93,4 +93,109 @@ router.get('/:owner/:repo/raw', optionalAuth, async (req: AuthRequest, res, next
   } catch (err) { next(err); }
 });
 
+// PUT /api/git/:owner/:repo/contents — Create or update a file (in-browser editor)
+router.put('/:owner/:repo/contents', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const { owner, repo } = req.params;
+    const { path: filePath, content, message, branch = 'main' } = req.body;
+
+    if (!filePath || content === undefined) throw createError('path and content are required', 400);
+    if (!message) throw createError('Commit message is required', 400);
+
+    // Verify ownership
+    const ownerUser = await prisma.user.findUnique({ where: { username: owner as string } });
+    if (!ownerUser || ownerUser.id !== req.user!.id) throw createError('Forbidden', 403);
+
+    const repository = await prisma.repository.findFirst({
+      where: { ownerId: req.user!.id, name: repo as string },
+    });
+    if (!repository) throw createError('Repository not found', 404);
+
+    const repoPath = gitService.getRepoPath(owner, repo);
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const pathModule = require('path');
+    const os = require('os');
+
+    // Clone to temp dir, make changes, push
+    const tmpDir = fs.mkdtempSync(pathModule.join(os.tmpdir(), 'pakhub-edit-'));
+    try {
+      execSync(`git clone "${repoPath}" "${tmpDir}"`, { stdio: 'pipe' });
+
+      // Checkout branch
+      try {
+        execSync(`git checkout "${branch}"`, { cwd: tmpDir, stdio: 'pipe' });
+      } catch {
+        execSync(`git checkout -b "${branch}"`, { cwd: tmpDir, stdio: 'pipe' });
+      }
+
+      // Write file
+      const fullPath = pathModule.join(tmpDir, filePath);
+      fs.mkdirSync(pathModule.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, content, 'utf8');
+
+      // Commit and push
+      execSync(`git add "${filePath}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git config user.email "${req.user!.email || 'user@pakhub.com'}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git config user.name "${req.user!.username}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git push origin "${branch}" --force-with-lease`, { cwd: tmpDir, stdio: 'pipe' });
+
+      res.json({ success: true, message: 'File saved successfully' });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  } catch (err) { next(err); }
+});
+
+// DELETE /api/git/:owner/:repo/contents — Delete a file
+router.delete('/:owner/:repo/contents', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const { owner, repo } = req.params;
+    const { path: filePath, message, branch = 'main' } = req.body;
+
+    if (!filePath) throw createError('path is required', 400);
+    if (!message) throw createError('Commit message is required', 400);
+
+    const ownerUser = await prisma.user.findUnique({ where: { username: owner as string } });
+    if (!ownerUser || ownerUser.id !== req.user!.id) throw createError('Forbidden', 403);
+
+    const repository = await prisma.repository.findFirst({
+      where: { ownerId: req.user!.id, name: repo as string },
+    });
+    if (!repository) throw createError('Repository not found', 404);
+
+    const repoPath = gitService.getRepoPath(owner, repo);
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const pathModule = require('path');
+    const os = require('os');
+
+    const tmpDir = fs.mkdtempSync(pathModule.join(os.tmpdir(), 'pakhub-del-'));
+    try {
+      execSync(`git clone "${repoPath}" "${tmpDir}"`, { stdio: 'pipe' });
+      try {
+        execSync(`git checkout "${branch}"`, { cwd: tmpDir, stdio: 'pipe' });
+      } catch {
+        throw createError('Branch not found', 404);
+      }
+
+      const fullPath = pathModule.join(tmpDir, filePath);
+      if (!fs.existsSync(fullPath)) throw createError('File not found', 404);
+
+      fs.unlinkSync(fullPath);
+      execSync(`git add -A`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git config user.email "${req.user!.email || 'user@pakhub.com'}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git config user.name "${req.user!.username}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: tmpDir, stdio: 'pipe' });
+      execSync(`git push origin "${branch}" --force-with-lease`, { cwd: tmpDir, stdio: 'pipe' });
+
+      res.json({ success: true, message: 'File deleted successfully' });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  } catch (err) { next(err); }
+});
+
 export default router;
+

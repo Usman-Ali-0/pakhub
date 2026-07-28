@@ -5,7 +5,7 @@ import { useParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { BookOpen, Star, GitFork, Code2, AlertCircle, GitPullRequest, Settings, Lock, Eye, GitCommit, Tag, Zap } from 'lucide-react';
+import { BookOpen, Star, GitFork, Code2, AlertCircle, GitPullRequest, Settings, Lock, Eye, GitCommit, Tag, Zap, MessageSquare } from 'lucide-react';
 import { reposApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useTranslation } from '@/i18n/I18nProvider';
@@ -40,9 +40,11 @@ export default function RepoLayout({ children }: { children: React.ReactNode }) 
 
   const basePath = `/${owner}/${repo}`;
   const tabs = [
-    { name: t.repo.code, href: basePath, icon: Code2, match: (p: string) => p === basePath || p.startsWith(`${basePath}/blob`) },
+    { name: t.repo.code, href: basePath, icon: Code2, match: (p: string) => p === basePath || p.startsWith(`${basePath}/blob`) || p.startsWith(`${basePath}/edit`) },
     { name: t.repo.issues, href: `${basePath}/issues`, icon: AlertCircle, count: repository?.openIssuesCount },
     { name: t.repo.pullRequests, href: `${basePath}/pulls`, icon: GitPullRequest },
+    { name: 'Discussions', href: `${basePath}/discussions`, icon: MessageSquare, match: (p: string) => p.startsWith(`${basePath}/discussions`) },
+    { name: 'Wiki', href: `${basePath}/wiki`, icon: BookOpen, match: (p: string) => p.startsWith(`${basePath}/wiki`) },
     { name: t.repo.workflows, href: `${basePath}/workflows`, icon: Zap, match: (p: string) => p.startsWith(`${basePath}/workflows`) },
     { name: t.repo.commits, href: `${basePath}/commits`, icon: GitCommit },
     { name: t.repo.releases, href: `${basePath}/releases`, icon: Tag },

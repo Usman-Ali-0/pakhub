@@ -10,6 +10,9 @@ import searchRoutes from './search.routes';
 import aiRoutes from './ai.routes';
 import uploadRoutes from './upload.routes';
 import workflowsRoutes from './workflows.routes';
+import gistsRoutes from './gists.routes';
+import wikiRoutes from './wiki.routes';
+import discussionsRoutes from './discussions.routes';
 
 const router = Router();
 
@@ -24,10 +27,13 @@ router.use('/search', searchRoutes);
 router.use('/ai', aiRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/workflows', workflowsRoutes);
+router.use('/gists', gistsRoutes);
+router.use('/wiki', wikiRoutes);
+router.use('/discussions', discussionsRoutes);
 
 // Health check
 router.get('/health', (_, res) => {
-  res.json({ success: true, message: 'PISA-HUB API is running 🚀', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'PakHub API is running 🚀', timestamp: new Date().toISOString() });
 });
 
 export default router;

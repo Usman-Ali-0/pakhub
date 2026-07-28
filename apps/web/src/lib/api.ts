@@ -207,4 +207,43 @@ export const workflowsApi = {
     api.delete(`/workflows/${owner}/${repo}/${workflowId}`).then(r => r.data),
 };
 
+// ─── Gists ──────────────────────────────────────────────────
+export const gistsApi = {
+  list: (params?: any) => api.get('/gists', { params }).then(r => r.data.data),
+  myGists: () => api.get('/gists/user').then(r => r.data.data),
+  userGists: (username: string) => api.get(`/gists/user/${username}`).then(r => r.data.data),
+  get: (id: string) => api.get(`/gists/${id}`).then(r => r.data.data),
+  create: (data: any) => api.post('/gists', data).then(r => r.data.data),
+  update: (id: string, data: any) => api.patch(`/gists/${id}`, data).then(r => r.data.data),
+  delete: (id: string) => api.delete(`/gists/${id}`).then(r => r.data),
+  toggleStar: (id: string) => api.post(`/gists/${id}/star`).then(r => r.data),
+  fork: (id: string) => api.post(`/gists/${id}/fork`).then(r => r.data.data),
+  starred: () => api.get('/gists/starred').then(r => r.data.data),
+};
+
+// ─── Wiki ──────────────────────────────────────────────────
+export const wikiApi = {
+  list: (owner: string, repo: string) => api.get(`/wiki/${owner}/${repo}`).then(r => r.data.data),
+  getPage: (owner: string, repo: string, slug: string) => api.get(`/wiki/${owner}/${repo}/${slug}`).then(r => r.data.data),
+  create: (owner: string, repo: string, data: any) => api.post(`/wiki/${owner}/${repo}`, data).then(r => r.data.data),
+  update: (owner: string, repo: string, slug: string, data: any) => api.put(`/wiki/${owner}/${repo}/${slug}`, data).then(r => r.data.data),
+  delete: (owner: string, repo: string, slug: string) => api.delete(`/wiki/${owner}/${repo}/${slug}`).then(r => r.data),
+  getRevisions: (owner: string, repo: string, slug: string) => api.get(`/wiki/${owner}/${repo}/${slug}/revisions`).then(r => r.data.data),
+};
+
+
+// ─── Discussions ──────────────────────────────────────────
+export const discussionsApi = {
+  list: (owner: string, repo: string, params?: any) => api.get(`/discussions/${owner}/${repo}`, { params }).then(r => r.data.data),
+  get: (owner: string, repo: string, number: number) => api.get(`/discussions/${owner}/${repo}/${number}`).then(r => r.data.data),
+  create: (owner: string, repo: string, data: any) => api.post(`/discussions/${owner}/${repo}`, data).then(r => r.data.data),
+  update: (owner: string, repo: string, number: number, data: any) => api.patch(`/discussions/${owner}/${repo}/${number}`, data).then(r => r.data.data),
+  delete: (owner: string, repo: string, number: number) => api.delete(`/discussions/${owner}/${repo}/${number}`).then(r => r.data),
+  getCategories: (owner: string, repo: string) => api.get(`/discussions/${owner}/${repo}/categories`).then(r => r.data.data),
+  createCategory: (owner: string, repo: string, data: any) => api.post(`/discussions/${owner}/${repo}/categories`, data).then(r => r.data.data),
+  getComments: (owner: string, repo: string, number: number) => api.get(`/discussions/${owner}/${repo}/${number}/comments`).then(r => r.data.data),
+  addComment: (owner: string, repo: string, number: number, data: any) => api.post(`/discussions/${owner}/${repo}/${number}/comments`, data).then(r => r.data.data),
+  markAnswer: (owner: string, repo: string, number: number, commentId: string) => api.post(`/discussions/${owner}/${repo}/${number}/comments/${commentId}/answer`).then(r => r.data),
+};
+
 export default api;
