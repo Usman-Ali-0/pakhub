@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { discussionsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import MarkdownEditor from '@/components/MarkdownEditor';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 
 export default function NewDiscussionPage({
   params,

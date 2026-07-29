@@ -9,7 +9,7 @@ import { MessageSquare, Pin, CheckCircle2, Lock, Reply, MoreHorizontal } from 'l
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import MarkdownEditor from '@/components/MarkdownEditor';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import toast from 'react-hot-toast';
 
 export default function DiscussionDetailPage({

@@ -6,8 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { discussionsApi } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Pin, CheckCircle2, MessageCircle } from 'lucide-react';
-import EmptyState from '@/components/EmptyState';
-import Pagination from '@/components/Pagination';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function DiscussionsListPage({
   params,

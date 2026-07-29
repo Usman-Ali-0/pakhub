@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { gistsApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
-import Navbar from '@/components/layout/Navbar';
+import { Navbar } from '@/components/layout/Navbar';
 import { formatDistanceToNow } from 'date-fns';
 import { Star, GitFork, Trash2, Edit2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';

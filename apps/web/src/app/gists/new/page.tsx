@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gistsApi } from '@/lib/api';
-import Navbar from '@/components/layout/Navbar';
+import { Navbar } from '@/components/layout/Navbar';
 import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
