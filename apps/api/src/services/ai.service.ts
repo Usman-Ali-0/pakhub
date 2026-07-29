@@ -90,7 +90,7 @@ Score from 0-100 (100 = perfect). Keep comments array under 10 items.`;
     // Fall back to platform Gemini
     const gemini = getGeminiClient();
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const response = await model.generateContent(prompt);
       const text = response.response.text();
       return parseAIReviewResponse(text);
@@ -145,7 +145,7 @@ Keep it concise and professional. No preamble.`;
 
     const gemini = getGeminiClient();
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const response = await model.generateContent(prompt);
       return response.response.text();
     }
@@ -179,7 +179,7 @@ export async function explainCode(
 
     const gemini = getGeminiClient();
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const response = await model.generateContent(prompt);
       return response.response.text();
     }
@@ -221,7 +221,7 @@ export async function suggestCommitMessage(diff: string, userId?: string): Promi
     // Fallback to Gemini
     const gemini = getGeminiClient();
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const response = await model.generateContent(prompt);
       return response.response.text().trim();
     }
@@ -299,7 +299,7 @@ Be helpful, concise, and technical. Format code with markdown code blocks.`;
 
     const gemini = getGeminiClient();
     if (gemini) {
-      const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const response = await model.generateContent(fullPrompt);
       return response.response.text();
     }
@@ -321,7 +321,7 @@ async function callUserProvider(provider: any, prompt: string): Promise<string |
     switch (provider.provider) {
       case 'GEMINI': {
         const client = new GoogleGenerativeAI(apiKey);
-        const model = client.getGenerativeModel({ model: provider.selectedModel || 'gemini-2.0-flash' });
+        const model = client.getGenerativeModel({ model: provider.selectedModel || 'gemini-1.5-flash' });
         const response = await model.generateContent(prompt);
         return response.response.text();
       }
