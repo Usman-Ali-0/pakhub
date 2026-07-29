@@ -373,9 +373,9 @@ async function callUserProvider(provider: any, prompt: string): Promise<string |
       default:
         return null;
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('User provider error:', err);
-    return null;
+    return `[AI Provider Error] ${err.message || 'Unknown error occurred while calling your AI provider.'}`;
   }
 }
 
