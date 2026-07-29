@@ -256,7 +256,7 @@ export async function getCopilotCompletion(
     const groq = getGroqClient();
     if (groq) {
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 200,
         temperature: 0.2,
