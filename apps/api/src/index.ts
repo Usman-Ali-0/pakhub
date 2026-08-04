@@ -19,6 +19,7 @@ import { getRepoPath } from './services/git.service';
 import prisma from './lib/prisma';
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = http.createServer(app);
 
 // ─────────────────────────────────────────────────────────
