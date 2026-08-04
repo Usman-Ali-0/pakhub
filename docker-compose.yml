@@ -16,7 +16,7 @@ services:
       PORT: 4000
       API_URL: ${API_URL:-http://143.198.88.163:4000}
       CLIENT_URL: ${CLIENT_URL:-http://143.198.88.163:3000}
-      CORS_ORIGINS: http://143.198.88.163:3000,http://localhost:3000
+      CORS_ORIGINS: http://143.198.88.163:3000,http://localhost:3000,http://143.198.88.163,http://pakhub.net,https://pakhub.net
       DATABASE_URL: postgresql://pakhub:pakhub123@postgres:5432/pakhub
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-pakhub-jwt-secret-change-in-production-min-32-chars-long}
@@ -116,12 +116,29 @@ services:
       timeout: 20s
       retries: 3
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: pakhub-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   repos_data:
   uploads_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   default:

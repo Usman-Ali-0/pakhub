@@ -1,0 +1,8 @@
+pakhub.net, 143.198.88.163 {
+    handle /api/* {
+        reverse_proxy api:4000
+    }
+    handle /* {
+        reverse_proxy web:3000
+    }
+}
